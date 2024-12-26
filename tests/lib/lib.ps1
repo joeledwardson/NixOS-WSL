@@ -18,16 +18,13 @@ function Remove-Escapes {
 # Implementation-independent base class
 class Distro {
   [string]$id
-  [string]$tempdir
 
   Distro() {
     $tarball = $this.FindTarball()
 
     $this.id = $(New-Guid).ToString()
-    $this.tempdir = Join-Path $([System.IO.Path]::GetTempPath()) $this.id
-    New-Item -ItemType Directory $this.tempdir
 
-    & wsl.exe --import $this.id $this.tempdir $tarball --version 2 | Write-Host
+    & wsl.exe --install --from-file $tarball $this.id | Write-Host
     if ($LASTEXITCODE -ne 0) {
       throw "Failed to import distro"
     }
@@ -81,9 +78,6 @@ class Distro {
     & wsl.exe --unregister $this.id | Write-Host
     if ($LASTEXITCODE -ne 0) {
       throw "Failed to unregister distro"
-    }
-    if (Test-Path $this.tempdir) {
-      Remove-Item $this.tempdir -Recurse -Force
     }
   }
 }
